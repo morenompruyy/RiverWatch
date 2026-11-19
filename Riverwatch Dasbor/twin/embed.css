@@ -1,0 +1,23 @@
+/* Mode tanam: hanya panggung 3D. Seluruh antarmuka lama disembunyikan (tetap ada di DOM karena kode 3D memakainya). */
+html, body.embed { height: 100%; margin: 0; padding: 0; background: transparent; overflow: hidden; color-scheme: dark; }
+body.embed .wrap { max-width: none; margin: 0; padding: 0; }
+body.embed header, body.embed .side, body.embed .hint, body.embed .detail,
+body.embed .caption, body.embed .stage-actions, body.embed .chips, body.embed .pip, body.embed .pins { display: none !important; }
+body.embed .layout, body.embed .main { display: block; margin: 0; }
+body.embed .stage {
+  position: fixed; inset: 0; width: 100vw; height: 100vh; border: 0; border-radius: 0; background: transparent;
+}
+body.embed .loader {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px;
+  background: radial-gradient(120% 90% at 50% 20%, #12384c 0%, #0a1f2c 70%);
+  color: #e6f3f8; font: 500 14px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  letter-spacing: 0.01em; z-index: 5;
+}
+body.embed .loader[hidden] { display: none; }
+body.embed .loader p { margin: 0; opacity: 0.8; }
+body.embed .loader .bar { width: 160px; height: 4px; border-radius: 99px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+body.embed .loader .bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #4cc3ff, #34c9a0); transition: width 0.25s ease-out; }
+body.embed .fallback {
+  margin: 0; padding: 24px; position: absolute; inset: 0; display: grid; place-content: center; text-align: center;
+  color: #e6f3f8; font: 500 15px/1.5 system-ui, sans-serif; background: #0a1f2c;
+}

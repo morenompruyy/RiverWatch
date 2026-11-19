@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kembar digital Riverwatch</title>
+<link rel="stylesheet" href="twin.css">
+<link rel="stylesheet" href="embed.css">
+</head>
+<body class="embed">
+<div class="wrap">
+  <header>
+    <h1>Riverwatch 3D</h1>
+    <p class="sub">Satu titik pantau di sungai dengan CCTV mini buatan sendiri. Anggaran perkiraan sekitar Rp2,5 juta.</p>
+  </header>
+
+  <div class="layout">
+    <section class="main" aria-label="Model 3D titik pantau">
+      <div>
+        <div class="stage" id="stage">
+          <div class="chips" id="chips">
+            <span class="chip lvl" id="chipLevel"><i></i><b>Waspada</b></span>
+            <span class="chip"><span>Tutupan</span> <b id="chipCov">0%</b></span>
+            <span class="chip"><b id="chipTime">12:00</b> <span id="chipTod">Siang</span></span>
+          </div>
+          <div class="pip" id="pip"><canvas id="pipHud"></canvas></div>
+          <div class="pins" id="pins"></div>
+          <div class="caption" id="caption" hidden></div>
+          <div class="stage-actions">
+            <button type="button" class="sbtn" id="tourBtn" aria-pressed="false">Tur singkat</button>
+          </div>
+          <div class="loader" id="loader" role="status">
+            <p id="loaderMsg">Menyiapkan model 3D</p>
+            <div class="bar"><i id="loaderBar"></i></div>
+          </div>
+        </div>
+        <p class="hint" id="hint"></p>
+      </div>
+      <div class="card detail" id="detail" aria-live="polite"></div>
+    </section>
+
+    <aside class="side" aria-label="Kontrol model">
+      <div class="card" id="c-view">
+        <h2>Tampilan</h2>
+        <div class="seg view" id="views" role="group" aria-label="Pilih tampilan">
+          <button type="button" data-v="0" aria-pressed="true">Titik pantau</button>
+          <button type="button" data-v="1" aria-pressed="false">Isi pod</button>
+          <button type="button" data-v="2" aria-pressed="false">Isi hub</button>
+        </div>
+        <div class="ctl" id="c-explode" hidden>
+          <label class="row" for="explode">Uraikan <span id="explode-val">100%</span></label>
+          <input type="range" id="explode" min="0" max="100" step="1" value="100">
+          <div class="toggles">
+            <label for="t-cut"><input type="checkbox" id="t-cut"> Potong penampang</label>
+            <label for="t-dim"><input type="checkbox" id="t-dim" checked> Tampilkan ukuran</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="c-level">
+        <h2>Tingkat penumpukan</h2>
+        <div class="seg" id="seg" role="group" aria-label="Tingkat penumpukan sampah">
+          <button type="button" data-l="0" aria-pressed="false">Aman</button>
+          <button type="button" data-l="1" aria-pressed="true">Waspada</button>
+          <button type="button" data-l="2" aria-pressed="false">Kritis</button>
+        </div>
+        <div class="readout"><div class="big" id="cov">0<small>%</small></div><span>tutupan zona pantau, dihitung dari gambar kamera</span></div>
+        <div class="meter" aria-hidden="true"><i id="covBar"></i><u style="left:15%"></u><u style="left:35%"></u></div>
+        <div class="scale" aria-hidden="true"><span>0</span><span>15%</span><span>35%</span><span>100%</span></div>
+        <p class="rules"><span id="rule"></span><span class="tag" id="notif"></span></p>
+        <p class="note">Tutupan adalah luas gabungan kotak deteksi di dalam zona dibagi luas zona. Ambang batas adalah contoh awal yang ditala saat uji.</p>
+      </div>
+
+      <div class="card" id="c-time">
+        <h2>Waktu dan cahaya</h2>
+        <div class="ctl" style="margin-top:0">
+          <label class="row" for="hour">Jam <span id="hour-val">12:00</span></label>
+          <input type="range" id="hour" min="5.5" max="21" step="0.05" value="12">
+          <div class="quick" id="tod">
+            <button type="button" data-h="7.2" aria-pressed="false">Pagi</button>
+            <button type="button" data-h="12" aria-pressed="true">Siang</button>
+            <button type="button" data-h="17.7" aria-pressed="false">Senja</button>
+            <button type="button" data-h="20.2" aria-pressed="false">Malam</button>
+          </div>
+        </div>
+        <p class="note" id="todNote">Kamera Pi biasa tanpa inframerah tidak melihat dalam gelap. Malam hari butuh lampu jalan, dan mutu deteksinya harus diuji di lokasi.</p>
+      </div>
+
+      <div class="card toggles" id="c-layers">
+        <h2>Lapisan</h2>
+        <label for="t-pip"><input type="checkbox" id="t-pip" checked> Pandangan kamera dan deteksi</label>
+        <label for="t-zone"><input type="checkbox" id="t-zone" checked> Zona pantau dan sudut pandang</label>
+        <label for="t-box"><input type="checkbox" id="t-box" checked> Kotak deteksi di model</label>
+        <label for="t-flow"><input type="checkbox" id="t-flow" checked> Aliran data dan peringatan</label>
+        <label for="t-cable"><input type="checkbox" id="t-cable"> Jalur kabel tembus pandang</label>
+        <label for="t-rot"><input type="checkbox" id="t-rot"> Putar otomatis</label>
+        <ul class="classes" id="classes" aria-label="Warna kotak deteksi"></ul>
+      </div>
+
+      <div class="card">
+        <h2 id="parts-title">Komponen</h2>
+        <div class="toggles" style="margin-bottom:6px"><label for="t-names"><input type="checkbox" id="t-names"> Tampilkan nama di model</label></div>
+        <div class="parts" id="parts"></div>
+        <div class="row2">
+          <button type="button" class="btn" id="reset">Atur ulang tampilan</button>
+          <button type="button" class="btn" id="tourBtn2">Tur singkat</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+<script src="../vendor/three.min.js"></script>
+<script src="../vendor/OrbitControls.js"></script>
+<script src="../vendor/BufferGeometryUtils.js"></script>
+<script src="twin.js"></script>
+</body>
+</html>

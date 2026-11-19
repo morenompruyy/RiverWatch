@@ -1,0 +1,254 @@
+/* Riverwatch · komponen kaca cair: permukaan, tombol, kontrol segmen, sakelar, penggeser, lembar, toast. */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100vh; min-height: 100dvh; color: var(--ink);
+  font: 400 15px/1.45 var(--font); letter-spacing: -0.003em;
+  background: var(--bg-0); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+h1, h2, h3, h4, p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; letter-spacing: inherit; }
+button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+svg { display: block; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+.vh { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+[hidden] { display: none !important; }
+::selection { background: color-mix(in srgb, var(--accent) 40%, transparent); }
+* { scrollbar-width: thin; scrollbar-color: var(--fill-3) transparent; }
+
+/* ---------- permukaan kaca ---------- */
+.glass {
+  --r: var(--r-xl);
+  position: relative; isolation: isolate; border-radius: var(--r);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  box-shadow: var(--glass-shadow);
+}
+.glass.strong { background: var(--glass-bg-strong); }
+/* cahaya tepi: gradien kerucut yang hanya tampak di garis tepi */
+.glass::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 2;
+  background: conic-gradient(from 200deg at 50% 50%, var(--rim-a), var(--rim-b) 16%, var(--rim-b) 50%, var(--rim-a) 66%, var(--rim-b) 84%, var(--rim-a));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0.55;
+}
+/* sorot yang mengikuti kursor (diatur main.js lewat --mx/--my) */
+.glass::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 1;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, -20%), var(--spot), transparent 62%);
+  opacity: var(--hl, 0); transition: opacity 0.4s var(--ease);
+}
+.glass.lit { --hl: 1; }
+.card { padding: var(--pad); display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.card > * { position: relative; z-index: 3; }
+.card-h { display: flex; align-items: center; gap: 10px; min-height: 28px; }
+.card-h h2 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; flex: 1; min-width: 0; }
+.card-h .sub { font-size: 12.5px; color: var(--ink-3); font-weight: 400; }
+.cap { font-size: 12.5px; color: var(--ink-3); line-height: 1.4; }
+.mut { color: var(--ink-2); }
+.dim { color: var(--ink-3); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* ---------- tombol ---------- */
+.btn {
+  --h: 40px;
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--h); padding: 0 18px;
+  border: 0; border-radius: 999px; font-weight: 550; font-size: 14px; white-space: nowrap; user-select: none;
+  background: var(--fill-2); color: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 1px var(--hair-2);
+  transition: transform var(--t-med) var(--spring), background var(--t-fast) ease, box-shadow var(--t-fast) ease, opacity var(--t-fast) ease;
+}
+:root[data-theme="light"] .btn { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 0 0 1px var(--hair), 0 1px 2px rgba(20, 70, 100, 0.08); background: rgba(255, 255, 255, 0.6); }
+.btn:hover { background: var(--fill-3); transform: translateY(-1px); }
+:root[data-theme="light"] .btn:hover { background: rgba(255, 255, 255, 0.85); }
+.btn:active { transform: scale(0.965); transition-duration: 90ms; }
+.btn svg { width: 18px; height: 18px; flex: none; }
+.btn.sm { --h: 32px; padding: 0 13px; font-size: 13px; }
+.btn.sm svg { width: 16px; height: 16px; }
+.btn.icon { width: var(--h); padding: 0; }
+.btn.primary { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 100%, #fff 14%), var(--accent)); color: var(--accent-ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 6px 18px -6px color-mix(in srgb, var(--accent) 70%, transparent); }
+.btn.primary:hover { filter: brightness(1.06); background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 100%, #fff 14%), var(--accent)); }
+.btn.warn { background: color-mix(in srgb, var(--lv3) 22%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lv3) 45%, transparent); }
+.btn.warn:hover { background: color-mix(in srgb, var(--lv3) 34%, transparent); }
+.btn.ghost { background: transparent; box-shadow: none; }
+.btn.ghost:hover { background: var(--fill-1); }
+.btn[disabled], .btn[aria-disabled="true"] { opacity: 0.45; pointer-events: none; }
+.btn.primary[disabled], .btn.primary[aria-disabled="true"] { opacity: 1; background: var(--fill-2, var(--fill-1)); color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--hair-2); }
+/* tema terang: aturan .btn terang di atas lebih spesifik, jadi varian tombol ditegaskan lagi di sini */
+:root[data-theme="light"] .btn.primary, :root[data-theme="light"] .btn.primary:hover { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 100%, #fff 14%), var(--accent)); color: var(--accent-ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 16px -6px color-mix(in srgb, var(--accent) 60%, transparent); }
+:root[data-theme="light"] .btn.warn { background: color-mix(in srgb, var(--lv3) 14%, #fff); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lv3) 42%, transparent); }
+:root[data-theme="light"] .btn.warn:hover { background: color-mix(in srgb, var(--lv3) 22%, #fff); }
+:root[data-theme="light"] .btn.ghost { background: transparent; box-shadow: none; }
+:root[data-theme="light"] .btn.ghost:hover { background: var(--fill-1); }
+:root[data-theme="light"] .btn.primary[disabled], :root[data-theme="light"] .btn.primary[aria-disabled="true"] { background: var(--fill-2); color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--hair-2); }
+.btn.busy { pointer-events: none; }
+.btn.busy::after { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- kontrol segmen ala iOS ---------- */
+.seg {
+  --pad: 3px;
+  position: relative; display: inline-flex; padding: var(--pad); border-radius: 999px; background: var(--fill-1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18), inset 0 0 0 1px var(--hair-2); max-width: 100%;
+}
+:root[data-theme="light"] .seg { box-shadow: inset 0 1px 2px rgba(20, 70, 100, 0.12), inset 0 0 0 1px var(--hair-2); background: rgba(11, 34, 48, 0.06); }
+.seg > button {
+  position: relative; z-index: 1; flex: 1 1 auto; height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent;
+  color: var(--ink-2); font-weight: 550; font-size: 13.5px; white-space: nowrap; transition: color var(--t-fast) ease;
+}
+.seg > button[aria-pressed="true"], .seg > button[aria-selected="true"] { color: var(--ink); }
+.seg > button:hover { color: var(--ink); }
+.seg-thumb {
+  position: absolute; z-index: 0; top: var(--pad); bottom: var(--pad); left: 0; width: var(--w, 0px); border-radius: 999px;
+  transform: translateX(var(--x, 0px)); pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.12));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38), 0 2px 8px rgba(0, 0, 0, 0.22);
+  transition: transform var(--t-slow) var(--spring), width var(--t-slow) var(--spring), background var(--t-med) ease;
+}
+:root[data-theme="light"] .seg-thumb { background: #fff; box-shadow: 0 1px 3px rgba(20, 70, 100, 0.22), 0 4px 10px -4px rgba(20, 70, 100, 0.2); }
+.seg.tint .seg-thumb { background: linear-gradient(180deg, color-mix(in srgb, var(--lvc) 55%, transparent), color-mix(in srgb, var(--lvc) 30%, transparent)); }
+.seg.fill { display: flex; width: 100%; }
+.seg.fill > button { padding: 0 6px; }
+.seg.init .seg-thumb { transition: none; }
+@media (max-width: 480px) {
+  .seg > button { padding: 0 9px; font-size: 13px; }
+  .seg.fill > button, .seg.wide > button { padding: 0 4px; font-size: 12.5px; min-width: 0; }
+}
+
+/* ---------- sakelar ---------- */
+.switch { position: relative; display: inline-block; width: 51px; height: 31px; flex: none; }
+.switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 2; }
+.switch i {
+  position: absolute; inset: 0; border-radius: 999px; background: var(--fill-3); transition: background var(--t-med) ease; box-shadow: inset 0 0 0 1px var(--hair-2);
+}
+.switch i::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(0, 0, 0, 0.08); transition: transform var(--t-slow) var(--spring), width var(--t-med) var(--spring);
+}
+.switch input:checked + i { background: var(--lv0); }
+.switch input:active + i::after { width: 32px; }
+.switch input:checked:active + i::after { transform: translateX(15px); }
+.switch input:checked + i::after { transform: translateX(20px); }
+.switch input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px; }
+.switch input:disabled { cursor: not-allowed; }
+.switch input:disabled + i { opacity: 0.5; }
+
+/* ---------- penggeser ---------- */
+.range { --p: 50%; -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; margin: 0; cursor: pointer; }
+.range::-webkit-slider-runnable-track { height: 6px; border-radius: 99px; background: linear-gradient(90deg, var(--accent) var(--p), var(--fill-3) var(--p)); }
+.range::-moz-range-track { height: 6px; border-radius: 99px; background: var(--fill-3); }
+.range::-moz-range-progress { height: 6px; border-radius: 99px; background: var(--accent); }
+.range::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; margin-top: -10px; border-radius: 50%; background: #fff; border: 0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 0 0 0.5px rgba(0, 0, 0, 0.1); transition: transform var(--t-med) var(--spring); }
+.range::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; background: #fff; border: 0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
+.range:active::-webkit-slider-thumb { transform: scale(1.12); }
+.range:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ---------- label kecil, pil, titik ---------- */
+.pill {
+  display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+  background: var(--fill-2); color: var(--ink); white-space: nowrap; box-shadow: inset 0 0 0 1px var(--hair-2);
+}
+.pill .dot { width: 8px; height: 8px; }
+.pill.lv { background: color-mix(in srgb, var(--lvc) 20%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lvc) 50%, transparent); transition: background var(--t-slow) ease; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--c, var(--accent)); flex: none; }
+.dot.live { box-shadow: 0 0 0 0 color-mix(in srgb, var(--c, var(--accent)) 60%, transparent); animation: ping 2.2s ease-out infinite; }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--c, var(--accent)) 55%, transparent); } 70%, 100% { box-shadow: 0 0 0 8px transparent; } }
+.badge { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 6px; font-size: 11px; font-weight: 650; background: var(--fill-2); color: var(--ink-2); letter-spacing: 0.01em; }
+.badge.warn { background: color-mix(in srgb, var(--lv1) 24%, transparent); color: var(--ink); }
+.badge.ok { background: color-mix(in srgb, var(--lv0) 24%, transparent); }
+.badge.bad { background: color-mix(in srgb, var(--lv3) 26%, transparent); }
+
+/* ---------- isian teks ---------- */
+.field {
+  width: 100%; height: 42px; padding: 0 14px; border: 0; border-radius: 14px; background: var(--fill-1); color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--hair); transition: box-shadow var(--t-fast) ease, background var(--t-fast) ease;
+}
+.field::placeholder { color: var(--ink-3); }
+.field:focus { outline: none; background: var(--fill-2); box-shadow: inset 0 0 0 2px var(--accent); }
+textarea.field { height: auto; padding: 10px 14px; resize: vertical; min-height: 84px; }
+.search { position: relative; }
+.search svg { position: absolute; left: 13px; top: 50%; width: 17px; height: 17px; transform: translateY(-50%); color: var(--ink-3); pointer-events: none; }
+.search .field { padding-left: 38px; border-radius: 999px; }
+
+/* ---------- daftar baris ---------- */
+.rows { display: flex; flex-direction: column; }
+.row { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 8px 0; border-top: 1px solid var(--hair-2); }
+.row:first-child { border-top: 0; }
+.row .grow { flex: 1; min-width: 0; }
+.row .t { font-weight: 550; }
+.row .d { font-size: 12.5px; color: var(--ink-3); line-height: 1.35; }
+.row.click { cursor: pointer; border-radius: 14px; margin: 0 -10px; padding: 8px 10px; border-top-color: transparent; transition: background var(--t-fast) ease, transform var(--t-med) var(--spring); }
+.row.click:hover { background: var(--fill-1); }
+.row.click:active { transform: scale(0.985); }
+.row.click + .row.click { border-top-color: transparent; }
+
+/* ---------- tooltip grafik ---------- */
+.tip {
+  position: fixed; z-index: 60; pointer-events: none; min-width: 120px; max-width: 260px; padding: 9px 12px; border-radius: 14px; font-size: 12.5px; line-height: 1.4;
+  background: var(--glass-bg-strong); -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: var(--glass-shadow); opacity: 0; transform: translateY(4px) scale(0.98); transition: opacity 0.12s ease, transform 0.18s var(--ease);
+}
+.tip.on { opacity: 1; transform: none; }
+.tip b { font-weight: 650; }
+.tip .tr { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.tip .tr + .tr { margin-top: 3px; }
+.tip .k { color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; }
+
+/* ---------- lembar (sheet) ---------- */
+.scrim { position: fixed; inset: 0; z-index: 80; background: var(--scrim); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); opacity: 0; transition: opacity var(--t-med) ease; }
+.scrim.on { opacity: 1; }
+.sheet {
+  position: fixed; z-index: 81; left: 50%; top: 50%; width: min(720px, calc(100vw - 28px)); max-height: min(86vh, 860px); display: flex; flex-direction: column;
+  transform: translate(-50%, -46%) scale(0.96); opacity: 0; transition: transform var(--t-slow) var(--spring), opacity var(--t-med) ease;
+  --r: 32px;
+}
+.sheet.on { transform: translate(-50%, -50%); opacity: 1; }
+.sheet.narrow { width: min(460px, calc(100vw - 28px)); }
+.sheet-h { display: flex; align-items: center; gap: 12px; padding: 20px 22px 10px; position: relative; z-index: 3; }
+.sheet-h h2 { flex: 1; font-size: 19px; font-weight: 650; letter-spacing: -0.015em; min-width: 0; }
+.sheet-b { padding: 6px 22px 22px; overflow: auto; position: relative; z-index: 3; display: flex; flex-direction: column; gap: 16px; overscroll-behavior: contain; }
+.sheet-f { display: flex; gap: 10px; justify-content: flex-end; padding: 0 22px 20px; position: relative; z-index: 3; flex-wrap: wrap; }
+@media (max-width: 760px) {
+  .sheet { left: 0; right: 0; bottom: 0; top: auto; width: 100%; max-height: 92dvh; transform: translateY(104%); border-radius: 32px 32px 0 0; --r: 32px 32px 0 0; padding-bottom: var(--safe-b); }
+  .sheet.on { transform: none; }
+  .sheet::before { border-radius: 32px 32px 0 0; }
+  .sheet-h::before { content: ""; position: absolute; top: 8px; left: 50%; width: 40px; height: 5px; border-radius: 99px; background: var(--fill-3); transform: translateX(-50%); }
+  .sheet-h { padding-top: 26px; }
+}
+
+/* ---------- toast ---------- */
+.toasts { position: fixed; z-index: 90; left: 50%; top: 16px; transform: translateX(-50%); display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none; width: min(460px, calc(100vw - 24px)); }
+.toast {
+  --r: 22px; display: flex; align-items: center; gap: 11px; width: 100%; padding: 12px 16px; font-weight: 550; font-size: 14px;
+  transform: translateY(-24px) scale(0.94); opacity: 0; transition: transform var(--t-slow) var(--spring), opacity var(--t-med) ease; pointer-events: auto;
+}
+.toast.on { transform: none; opacity: 1; }
+.toast.out { transform: translateY(-14px) scale(0.96); opacity: 0; transition-duration: 220ms; }
+.toast svg { width: 20px; height: 20px; flex: none; }
+.toast .m { flex: 1; min-width: 0; }
+.toast.ok svg { color: var(--lv0); }
+.toast.err svg { color: var(--lv3); }
+.toast.info svg { color: var(--accent); }
+
+/* ---------- pemuatan ---------- */
+.skel { border-radius: 12px; background: linear-gradient(100deg, var(--fill-1) 30%, var(--fill-2) 50%, var(--fill-1) 70%); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+:root[data-lite="1"] .skel { animation: none; }
+
+/* ---------- angka besar ala Apple Weather ---------- */
+.num { font-weight: 200; font-variant-numeric: tabular-nums; letter-spacing: -0.045em; line-height: 0.95; }
+.num small { font-size: 0.34em; font-weight: 300; letter-spacing: 0; margin-left: 0.06em; color: var(--ink-2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .dot.live, .skel, .btn.busy::after { animation: none; }
+  .btn, .seg-thumb, .switch i::after, .sheet, .toast { transition-duration: 1ms; }
+}
+:root[data-lite="1"] .glass::before, :root[data-lite="1"] .glass::after { display: none; }
+:root[data-lite="1"] .dot.live { animation: none; }
